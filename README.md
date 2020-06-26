@@ -8,3 +8,9 @@ using R I will be using pymc3.
 1. The original material: https://github.com/rmcelreath/statrethinking_winter2019 
 2. The books code ported to `pymc3` https://github.com/pymc-devs/resources/tree/master/Rethinking
 3. Solutions to the assignments using `pymc3` https://github.com/gbosquechacon/statrethink_course_in_pymc3 
+
+# Dependencies
+```
+pip install pymc3
+sudo apt install libblas-dev
+```
