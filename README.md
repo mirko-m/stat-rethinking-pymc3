@@ -23,4 +23,4 @@ The only exception is 'data/hapiness.csv' which is the result of a simulation fr
 the `rethinking` package and was taken from
 https://github.com/gbosquechacon/statrethink_course_in_pymc3 .
 
-Note that the seperator for the columns is ":" instead of "," .  
+Note that the seperator for the columns is ";" instead of "," .  
