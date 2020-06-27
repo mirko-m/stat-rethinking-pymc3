@@ -14,3 +14,13 @@ using R I will be using pymc3.
 pip install pymc3
 sudo apt install libblas-dev
 ```
+
+# Data
+Most of the data was taken from https://github.com/rmcelreath/statrethinking_winter2019 .
+It can also be scraped using the `get_data.py` script.
+
+The only exception is 'data/hapiness.csv' which is the result of a simulation from
+the `rethinking` package and was taken from
+https://github.com/gbosquechacon/statrethink_course_in_pymc3 .
+
+Note that the seperator for the columns is ":" instead of "," .  
