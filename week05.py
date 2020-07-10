@@ -557,6 +557,40 @@ ax2.set_title('Model Using R')
 # %% [markdown]
 # The choice of how to encode the wine flight makes a difference for the parameter values. It also makes a small difference for the predictions.
 
+# %% [markdown]
+# ## Why Does the Choice of How to Encode the Flight Matter?
+
+# %% [markdown]
+# In principle one would expect that whether we encode the flight with 'red'=1 or 'white'=1 does not matter. Remeber that in the code above I used the varable F to encode 'white'=1 and the variable R to encode 'red'=1. Changing the encoding from F to R is just a linear transformation since R = 1 - F.
+#
+# It is not surprising that such a linear transformation changes the parameter values, but it is perhaps surprising that it changes the predictions. I think the change in predictions occurs because the linear transformation changes how the model assigns uncertainties to the individual observations. The terms that change because of the linear transformations are:
+# $$
+# \mathrm{score} = \mathrm{b_F} F + \mathrm{c_{JF}} F J + \mathrm{c_{WF}} F W + \mathrm{Rest}
+# $$
+#
+# substituting F = (1-R) gives:
+# $$
+# \mathrm{score} = \mathrm{b_F} (1-R) + \mathrm{c_{JF}} (1-R) J + \mathrm{c_{WF}} (1-R) W + \mathrm{Rest}
+# $$
+# which ca be rewritten as:
+# $$
+# \mathrm{score} = \mathrm{b_F} - \mathrm{b_F} R + \mathrm{c_{JF}} J - \mathrm{c_{JF}} R J + \mathrm{c_{WF}} W 
+#                  - \mathrm{c_{WF}}R W + \mathrm{Rest}
+# $$
+# Note the term $\mathrm{c_{WF}} W $ which appears after the linear transformation. Because of the interactions the coefficient in front of W depends on how we encode the other variables. This means that this coefficient cannot be analyzed in isolation.
+#
+# Maybe a better way to see how the uncertainties cahange is to look at a specific case. For example, he case where the flight is white , the judge is French and the whine is American. This means that F=1, J=0, W=1 and the model using F as a variable would give:
+# $$
+# \mathrm{score} = \mathrm{a} + \mathrm{b_{F}} + \mathrm{b_W} + \mathrm{c_{WF}}
+# $$
+#
+# If instead we use R as a variable, but otherwise formulate the model in the same manner (the coefficients would be different so I add a tilde) we would get
+# $$
+# \mathrm{score} = \mathrm{\tilde{a}} + \mathrm{\tilde{b}_W}
+# $$
+#
+# So the model using R as a variable assigns less uncertainty to this particular combination than the model using F.
+
 # %%
 os.system('jupyter nbconvert --to html week05.ipynb')
 
