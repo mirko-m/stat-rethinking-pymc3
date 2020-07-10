@@ -558,4 +558,6 @@ ax2.set_title('Model Using R')
 # The choice of how to encode the wine flight makes a difference for the parameter values. It also makes a small difference for the predictions.
 
 # %%
-os.e()
+os.system('jupyter nbconvert --to html week05.ipynb')
+
+# %%
