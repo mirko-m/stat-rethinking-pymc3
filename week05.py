@@ -447,8 +447,24 @@ pm.summary(trace_3_2, var_names=['~mu']).round(2)
 # %% [markdown]
 # ## Compare the two models
 
+# %% [markdown]
+# ### Compare Parameters
+
 # %%
-# compare predictions
+fig, (ax1, ax2) = plt.subplots(1,2,figsize=(8,6))
+az.plot_forest(trace_3_1, var_names=['~mu', '~sigma'], combined=True, figsize=(6,4), ax=ax1)
+ax1.axvline(0,c='k', ls='--')
+ax1.set_title('Model Using F')
+
+az.plot_forest(trace_3_2, var_names=['~mu', '~sigma'], combined=True, figsize=(6,4), ax=ax2)
+ax2.axvline(0,c='k', ls='--')
+ax2.axvline(0,c='k', ls='--')
+ax2.set_title('Model Using R')
+
+# %% [markdown]
+# ### Compare Predictions
+
+# %%
 fig, axes = plt.subplots(2,1,sharex=True,sharey=True)
 
 axes[0].scatter(trace_3_1['mu'].mean(axis=0), data['score_std_2'])
@@ -485,6 +501,8 @@ print(ff)
 print(rr)
 
 # %%
+# This is annoying, because it means that the traces are changed.
+# I will need to undo it below.
 F.set_value(ff)
 R.set_value(rr)
 W.set_value(ww)
@@ -502,7 +520,7 @@ ppc_3_1
 # %%
 means = ppc_3_1['mu'].mean(axis=0)
 stds = ppc_3_1['mu'].std(axis=0)
-hpds = az.hpd(ppc_3_2['mu'])
+hpds = az.hpd(ppc_3_1['mu'])
 
 fig, ax = plt.subplots(1,1)
 fig.set_tight_layout(True)
@@ -543,17 +561,6 @@ ax.set_xlim(-0.7,0.7)
 # %% [markdown]
 # FFW means French Wine, French Judge, White Wine
 
-# %%
-fig, (ax1, ax2) = plt.subplots(1,2,figsize=(8,6))
-az.plot_forest(trace_3_1, var_names=['~mu', '~sigma'], combined=True, figsize=(6,4), ax=ax1)
-ax1.axvline(0,c='k', ls='--')
-ax1.set_title('Model Using F')
-
-az.plot_forest(trace_3_2, var_names=['~mu', '~sigma'], combined=True, figsize=(6,4), ax=ax2)
-ax2.axvline(0,c='k', ls='--')
-ax2.axvline(0,c='k', ls='--')
-ax2.set_title('Model Using R')
-
 # %% [markdown]
 # The choice of how to encode the wine flight makes a difference for the parameter values. It also makes a small difference for the predictions.
 
@@ -590,6 +597,121 @@ ax2.set_title('Model Using R')
 # $$
 #
 # So the model using R as a variable assigns less uncertainty to this particular combination than the model using F.
+
+# %% [markdown]
+# ## Index Variable Model
+
+# %% [markdown]
+# If we include a 3-term interaction there is a total of 8 interaction parmeters that we can encode as a 2x2x2 array.
+
+# %%
+# redefine the variables, because I changed them above
+F = theano.shared(data['flight_idx'].values)
+W = theano.shared(data['wine.amer'].values)
+J = theano.shared(data['judge.amer'].values)
+R = theano.shared((data['flight_idx'] == 0).values.astype('int64'))
+
+# %%
+with pm.Model() as model_3_3:
+    
+    a = pm.Normal('a', mu=0,sigma=0.5,shape=(2,2,2))
+    mu = pm.Deterministic('mu', a[F,W,J])
+    sigma = pm.Exponential('sigma', lam=1)
+    
+    score = pm.Normal('score', mu=mu,sigma=sigma, observed=data['score_std_2'])
+    
+    trace_3_3 = pm.sample(1000, tune=1000)
+
+# %%
+az.plot_trace(trace_3_3, var_names=['~mu'], compact=True)
+
+# %%
+az.plot_forest(trace_3_3, var_names=['~mu', '~sigma'],combined=True)
+
+# %% [markdown]
+# ### Plot Predictions
+
+# %%
+ff = []
+ww = []
+jj = []
+lbls = []
+for j, lbl_j in enumerate(['F', 'A']):
+    for f, lbl_f in zip([1,0], ['W', 'R']):
+        for w, lbl_w in enumerate(['F', 'A']):
+            ff.append(f)
+            ww.append(w)
+            jj.append(j)
+            lbls.append(lbl_w+lbl_j+lbl_f)
+rr = [1 if x==0 else 0 for x in ff]
+            
+print(lbls)
+print(ww)
+print(jj)
+print(ff)
+print(rr)
+
+# %%
+# This is annoying, because it means that the traces are changed.
+# I will need to undo it below.
+F.set_value(ff)
+R.set_value(rr)
+W.set_value(ww)
+J.set_value(jj)
+
+# %%
+ppc_3_3 = pm.sample_posterior_predictive(trace_3_3, model=model_3_3, var_names=['score', 'mu'])
+
+# %%
+means = ppc_3_3['mu'].mean(axis=0)
+stds = ppc_3_3['mu'].std(axis=0)
+hpds = az.hpd(ppc_3_3['mu'])
+
+fig, ax = plt.subplots(1,1)
+fig.set_tight_layout(True)
+
+y = np.array(range(8))[::-1]
+for i, lbl in enumerate(lbls):
+    # ax.errorbar(means, y, xerr=hpds.T, ls='none', marker='o')
+    if i == 0:
+        ax.scatter(means, y, label='model_3__3', color='C0')
+    else:
+        ax.scatter(means, y, color='C0')
+    ax.hlines(y, hpds[:,0], hpds[:,1], color='C0', lw=2)
+    
+# plot the means of the data
+means_d = []
+hpds_d = np.zeros((8,2))
+
+count = 0
+for i_f, i_w, i_j in zip(ff,ww,jj):
+    fltr = (data['flight_idx'] == i_f) & (data['wine.amer'] == i_w) & (data['judge.amer'] == i_j)
+    means_d.append(data['score_std_2'][fltr].mean())
+    hpds_d[count,:] = az.hpd(data['score_std_2'][fltr])
+    count += 1
+    
+for i, lbl in enumerate(lbls):
+    # ax.errorbar(means, y, xerr=hpds.T, ls='none', marker='o')
+    if i ==0:
+        ax.scatter(means_d, y, c='C2', marker='x', label='data')
+    else:
+        ax.scatter(means_d, y, c='C2', marker='x')
+    ax.hlines(y, hpds_d[:,0], hpds_d[:,1], color='C2', lw=0.2)
+
+
+ax.set_yticks(range(8))
+ax.set_yticklabels(lbls[::-1])
+ax.axvline(x=0,ls='--', c='C3')
+ax.set_xlim(-2.3,2.3)
+ax.legend(loc=0)
+
+# %% [markdown]
+# The model means are very close to the data. I would have expected them to be the same, because there are 8 parameters and only 8 means to caclulate.
+#
+# Note that the credible interval for the data is much larger, because when calculating the credible interval for the model I am not using sigma.
+
+# %% [markdown]
+# # Convert to HTML
 
 # %%
 os.system('jupyter nbconvert --to html week05.ipynb')
