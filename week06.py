@@ -65,8 +65,6 @@ with pm.Model() as model_1_1:
     
     trace_1_1 = pm.sample(1000, tune=1000, chains=4)
 
-# %%
-
 # %% [markdown]
 # ### Prior Predictive Plots
 
@@ -362,7 +360,22 @@ with pm.Model() as model_3_2:
 pm.summary(trace_3_2, var_names=['~lambda'])
 
 # %% [markdown]
-# THESE PARAMETERS ARE DIFFERENT FROM THOSE IN THE SOLUTION. I DON'T KNOW WHY.
+# These parameters are different from the solution, because the solution does not standardize $\log(\mathrm{effort})$. The conversion to the parameters from the solution is:
+
+# %%
+mean = np.log(data3['research_effort']).mean() 
+std = np.log(data3['research_effort']).std()
+
+print('a converted = {:.3f}'.format(trace_3_2['a'].mean() - trace_3_2['c'].mean() * mean/std))
+print('c converted = {:.3f}'.format(trace_3_2['c'].mean() / std))
+
+# %% [markdown]
+# Note that these convertd parameters are closer to those from the solution:
+# - $\tilde{a}$ = -5.97,
+# - $\tilde{b}$ = 0.46,
+# - $\tilde{c}$ = 1.53,
+#
+# but not identical. The reason is probably that the priors are different.
 
 # %%
 ppc_3_2 = pm.sample_posterior_predictive(trace_3_2, samples=4000, model=model_3_2)
