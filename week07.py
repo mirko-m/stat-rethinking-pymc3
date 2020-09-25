@@ -165,6 +165,8 @@ df_data['age_std'] = (df_data['age'] - df_data['age'].mean())/df_data['age'].std
 # %% [markdown]
 # Note: for some reason these models don't work with pm.sample_prior_predictive . This is probably related to
 # https://discourse.pymc.io/t/valueerror-probabilities-are-not-non-negative-when-trying-to-sample-prior-predictive/4559 .
+#
+# **Update:** the solution appears to be to "pass `theano.tensor.sort(cutpoints)` to the ordered logistic distribution."
 
 # %%
 with pm.Model() as model_1_1:
