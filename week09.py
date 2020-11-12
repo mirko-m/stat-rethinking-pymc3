@@ -240,9 +240,9 @@ ax.axvline(0, ls='--', c='k')
 # # 3 Include Children as an Ordered Variable
 
 # %%
-delta = pm.Dirichlet('delta', np.full(NUM_EDU_CATEGORIES-1,2))
-    delta_j = pm.math.concatenate((tt.zeros(1), delta))
-    delta_j_cumsum = tt.cumsum(delta_j)
+# delta = pm.Dirichlet('delta', np.full(NUM_EDU_CATEGORIES-1,2))
+#     delta_j = pm.math.concatenate((tt.zeros(1), delta))
+#     delta_j_cumsum = tt.cumsum(delta_j)
 
 # %%
 MAX_CHILDREN = df['living.children'].max()
@@ -288,6 +288,18 @@ with pm.Model() as model_3_1:
                           target_accept=0.9)
 
 # %%
-az.summary(trace_3_1, var_names=['a_bar', 'b_bar', 'bA', 'bC', 'delta', 'chol_cov_corr', 'chol_cov_stds'])
+az.summary(trace_3_1, var_names=['a_bar', 'b_bar', 'bA', 'bC', 'delta', 'chol_cov_corr', 'chol_cov_stds'],
+           round_to=2)
+
+# %%
+fig, ax = plt.subplots(1,1)
+fig.set_tight_layout(True)
+az.plot_forest(trace_3_1, var_names=['a_bar', 'b_bar', 'bA', 'bC', 'delta'], combined=True, ax=ax)
+ax.axvline(0, ls='--', c='k')
+
+# %% [markdown]
+# Note that `delta[0]` is corresponds to the change of going from 1 child to 2 children and is larger than `delta[1]` and `delta[2]`. This means that having a second child has the biggest impact on the use of contraception.
+#
+# Note also that `bC` is larger than for the previous model. This makes sense, because a large `bC` value in the previous model would mean that having 4 children has a very large effect, whereas when children is included as an ordered variable the effect of having a 4th child can be rather small compared to the effect of having a second or third child.
 
 # %%
