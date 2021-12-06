@@ -6,7 +6,7 @@ using R I will be using pymc3.
 
 # Useful Links
 1. The original material: https://github.com/rmcelreath/statrethinking_winter2019 
-2. The books code ported to `pymc3` https://github.com/pymc-devs/resources/tree/master/Rethinking_2
+2. The books code ported to `pymc3` https://github.com/pymc-devs/resources/tree/master/Rethinking
 3. Solutions to the assignments using `pymc3` https://github.com/gbosquechacon/statrethink_course_in_pymc3 
 
 # Dependencies
@@ -24,3 +24,15 @@ the `rethinking` package and was taken from
 https://github.com/gbosquechacon/statrethink_course_in_pymc3 .
 
 Note that the seperator for the columns is ";" instead of "," .  
+
+# A Note on Version Control
+Instead of pushing the jupyter notebooks directly I use `jupytext` to convert
+them to python files. This makes it easier to follow changes that have been
+made to the code which would otherwise be drowned out by all the changes to the
+output of the cells. Since the python files do not contain any visualizations
+I am also pushing the notebooks as HTML files.
+
+Note that there are other methods to do version control with jupyter notebooks,
+for example `nbdime` (https://nbdime.readthedocs.io/en/latest/) which also
+works very well.
+
